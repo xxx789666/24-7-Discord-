@@ -87,9 +87,10 @@ ${userSummaries}
 
 Rules:
 1. Extract: background/job, interests, skill level, current projects, personality
-2. If user has existing data, merge new info (don't overwrite unless contradicted)
-3. If messages are too short to learn anything, keep existing data
-4. Do NOT invent information not mentioned in messages
+2. Extract targetMarket: list of real estate markets the user mentions (e.g. ["日本", "泰國", "杜拜"]). Empty array if none mentioned.
+3. If user has existing data, merge new info (don't overwrite unless contradicted)
+4. If messages are too short to learn anything, keep existing data
+5. Do NOT invent information not mentioned in messages
 
 Output a flat JSON object. Keys must be the user's numeric ID string.
 
@@ -104,7 +105,7 @@ Example:
     "personality": "friendly, humorous",
     "connections": "chatted with owner",
     "notes": "morning shift worker",
-    "lastSeen": "2026-03-23"
+    "targetMarket": ["日本", "泰國"]
   }
 }`;
 
@@ -121,6 +122,9 @@ Example:
         ...existing,
         ...info,
         interests: [...new Set([...(existing.interests || []), ...(info.interests || [])])],
+        targetMarket: [...new Set([...(existing.targetMarket || []), ...(info.targetMarket || [])])],
+        threadDepth: existing.threadDepth || {},
+        lastSeen: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         firstSeen: existing.firstSeen || new Date().toISOString(),
       };
