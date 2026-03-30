@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node --experimental-strip-types .claude/hooks/notification_hook.ts"
+          }
+        ]
+      }
+    ]
+  }
+}

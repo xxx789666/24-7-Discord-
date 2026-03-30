@@ -1,0 +1,23 @@
+# Environment
+.env
+*.env.local
+
+# Runtime data
+discord-lobster-master/data/
+discord-lobster-master/logs/
+
+# Node
+node_modules/
+npm-debug.log
+
+# Intelligence files (runtime-generated)
+*.workspace/intelligence/
+drafts/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# MCP secrets (keep .mcp.json but ignore if it has real keys)
+# Uncomment if you store real keys in .mcp.json:
+# .mcp.json
