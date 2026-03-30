@@ -3,12 +3,12 @@
 > 詳細規格請見 `任務.txt`。本文件追蹤開發進度與技術決策。
 
 ## Phase 1：環境準備
-- [ ] 啟用 WSL2 + Ubuntu 24.04
-- [ ] 安裝 Node.js 20 LTS（WSL2 內）
-- [ ] 安裝 OpenClaw（WSL2 內）
-- [ ] 取得 Gemini API Key（AI Studio，非 GCP 計費專案）
-- [ ] 建立 Telegram Bot（@BotFather）
-- [ ] 建立 WSL2 工作目錄結構
+- [ ] 啟用 WSL2 + Ubuntu 24.04（需人工執行）
+- [ ] 安裝 Node.js 20 LTS（WSL2 內）（需人工執行）
+- [ ] 安裝 OpenClaw（WSL2 內）（需人工執行）
+- [ ] 取得 Gemini API Key（AI Studio，非 GCP 計費專案）（需人工執行）
+- [ ] 建立 Telegram Bot（@BotFather）（需人工執行）
+- [x] 建立 WSL2 工作目錄結構
 
 ## Phase 2：Discord 設定
 - [ ] 建立伺服器「海外置產情報站」
