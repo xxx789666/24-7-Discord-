@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a 24/7 Discord real estate community bot ("Arthur") built on top of two open-source repos and extended with custom scripts. The full build plan is in `任務.txt`.
 
-**Runtime environment:** WSL2 Ubuntu with systemd timers (NOT native Windows / PM2 cron).
+**Runtime environment:** WSL2 Ubuntu with **cron** (systemd 不支援，改用 crontab 排程).
 
 ---
 
@@ -137,12 +137,30 @@ These cover: role-escape, data-leakage, and multilang-bypass vectors.
 
 ---
 
-## systemd Timer Setup (WSL2)
+## Cron Setup (WSL2)
 
-Timers go in `~/.config/systemd/user/`. After adding:
+排程改用 crontab（systemd 不支援此 WSL2 版本）。
+
 ```bash
-systemctl --user daemon-reload
-systemctl --user enable --now arthur-<name>.timer
+# 啟動 cron（WSL2 每次重啟需執行）
+sudo service cron start
+
+# 編輯排程
+crontab -e
 ```
 
-Persistent services (publisher, arthur-agent, tg-commander) use `.service` files without a paired `.timer`.
+crontab 範例：
+```
+0 9 * * *  cd ~/arthur-bot && node discord-lobster-master/news.js
+*/3 * * * * cd ~/arthur-bot && node discord-lobster-master/welcome.js
+*/20 * * * * cd ~/arthur-bot && node discord-lobster-master/vibes.js
+*/10 * * * * cd ~/arthur-bot && node discord-lobster-master/memory.js
+```
+
+WSL2 開機自動啟動 cron，在 `/etc/wsl.conf` 加入：
+```ini
+[boot]
+command = service cron start
+```
+
+常駐服務（publisher, arthur-agent, tg-commander）改用 `nohup node <script>.js &` 背景執行。
