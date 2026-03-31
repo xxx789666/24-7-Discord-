@@ -77,14 +77,12 @@ function geminiGenerate(prompt) {
   });
 }
 
-function postWebhook(webhookUrl, content) {
+function postWebhook(webhookUrl, content, opts = {}) {
   return new Promise((resolve, reject) => {
     const url = new URL(webhookUrl);
-    const payload = JSON.stringify({
-      content,
-      username: config.BOT_NAME,
-      avatar_url: config.BOT_AVATAR_URL,
-    });
+    const body = { content, username: config.BOT_NAME, avatar_url: config.BOT_AVATAR_URL };
+    if (opts.suppressEmbeds) body.flags = 4;
+    const payload = JSON.stringify(body);
     const req = https.request({
       hostname: url.hostname,
       path: url.pathname + url.search,
