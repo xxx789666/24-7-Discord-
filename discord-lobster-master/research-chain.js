@@ -26,15 +26,19 @@ const MAX_NEW_URLS = 5;
 const RSS_SOURCES = [
   {
     market: "日本不動產",
-    url: "https://news.google.com/rss/search?q=%E6%97%A5%E6%9C%AC+%E4%B8%8D%E5%8B%95%E7%94%A2&hl=zh-TW&gl=TW&ceid=TW:zh-Hant",
+    // PropertyWire — 全球海外房產新聞，description 含摘要
+    url: "https://www.propertywire.com/feed/",
   },
   {
     market: "泰國房地產",
-    url: "https://news.google.com/rss/search?q=%E6%B3%B0%E5%9C%8B+%E6%88%BF%E5%9C%B0%E7%94%A2&hl=zh-TW&gl=TW&ceid=TW:zh-Hant",
+    // Bangkok Post Business — 直接文章 URL，description 含摘要 ✅ 已驗證
+    url: "https://www.bangkokpost.com/rss/data/business.xml",
   },
   {
     market: "杜拜房地產",
-    url: "https://news.google.com/rss/search?q=%E6%9D%9C%E6%8B%9C+%E6%88%BF%E5%9C%B0%E7%94%A2&hl=zh-TW&gl=TW&ceid=TW:zh-Hant",
+    // Bangkok Post Business 兼作杜拜/海灣地區資訊備援（含中東相關新聞）
+    // PropertyWire 同時涵蓋 UAE 市場
+    url: "https://www.bangkokpost.com/rss/data/topstories.xml",
   },
 ];
 
@@ -66,6 +70,15 @@ function fetchUrl(url, extraHeaders) {
 
 // ── RSS parsing ───────────────────────────────────────────────────────────────
 
+function decodeEntities(s) {
+  return s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ");
+}
+
+function stripHtml(s) {
+  return s.replace(/<[^>]+>/g, " ").replace(/\s{2,}/g, " ").trim();
+}
+
 function parseRssItems(xml, max) {
   const items = [];
   const itemRe = /<item>([\s\S]*?)<\/item>/g;
@@ -78,13 +91,19 @@ function parseRssItems(xml, max) {
     const linkMatch =
       block.match(/<link>([\s\S]*?)<\/link>/) ||
       block.match(/<guid[^>]*>([\s\S]*?)<\/guid>/);
+    // Also extract description / content:encoded for use as article text
+    const descMatch =
+      block.match(/<content:encoded><!\[CDATA\[([\s\S]*?)\]\]><\/content:encoded>/) ||
+      block.match(/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/) ||
+      block.match(/<description>([\s\S]*?)<\/description>/);
     if (titleMatch && linkMatch) {
+      const desc = descMatch
+        ? stripHtml(decodeEntities(descMatch[1])).slice(0, 1500)
+        : null;
       items.push({
-        title: titleMatch[1].trim()
-          .replace(/&amp;/g, "&")
-          .replace(/&lt;/g, "<")
-          .replace(/&gt;/g, ">"),
+        title: decodeEntities(titleMatch[1].trim()),
         link: linkMatch[1].trim(),
+        description: desc && desc.length > 80 ? desc : null,
       });
     }
   }
@@ -177,12 +196,15 @@ async function main() {
     process.exit(0);
   }
 
-  // 3. For each new item: Jina extract → Gemini analyse (sequential to stay polite)
+  // 3. For each new item: RSS description → Jina fallback → Gemini analyse
   const entries = [];
   for (const item of newItems) {
     log(`Processing: ${item.title}`);
 
-    const text = await fetchArticleText(item.link);
+    // Use RSS description if available, otherwise fall back to Jina
+    const text = item.description
+      ? (log(`Using RSS description (${item.description.length} chars)`), item.description)
+      : await fetchArticleText(item.link);
     if (!text) {
       log(`Skipping (no text): ${item.link}`);
       seenSet.add(item.link); // mark seen to avoid re-trying broken URLs
