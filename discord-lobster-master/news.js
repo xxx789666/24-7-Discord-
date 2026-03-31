@@ -108,18 +108,19 @@ async function main() {
   }
 
   // 2. News (3 markets in parallel, max 3 items each)
+  // 使用直連 RSS（非 Google News redirect），確保 Discord 可點擊
   log("Fetching news RSS…");
   const [japanNews, thaiNews, dubaiNews] = await Promise.all([
     fetchNewsItems(
-      "https://news.google.com/rss/search?q=%E6%97%A5%E6%9C%AC+%E4%B8%8D%E5%8B%95%E7%94%A2&hl=zh-TW&gl=TW&ceid=TW:zh-Hant",
+      "https://www.propertywire.com/feed/",  // 全球海外房產直連 URL
       "Japan", 3,
     ),
     fetchNewsItems(
-      "https://news.google.com/rss/search?q=%E6%B3%B0%E5%9C%8B+%E6%88%BF%E5%9C%B0%E7%94%A2&hl=zh-TW&gl=TW&ceid=TW:zh-Hant",
+      "https://www.bangkokpost.com/rss/data/business.xml",  // 泰國直連 URL ✅
       "Thailand", 3,
     ),
     fetchNewsItems(
-      "https://news.google.com/rss/search?q=%E6%9D%9C%E6%8B%9C+%E6%88%BF%E5%9C%B0%E7%94%A2&hl=zh-TW&gl=TW&ceid=TW:zh-Hant",
+      "https://www.bangkokpost.com/rss/data/topstories.xml",  // 含中東/杜拜新聞
       "Dubai", 3,
     ),
   ]);
