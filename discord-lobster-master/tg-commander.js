@@ -48,6 +48,7 @@ function tgRequest(method, body) {
       hostname: "api.telegram.org",
       path: `/bot${TG_TOKEN}/${method}`,
       method: "POST",
+      family: 4,
       headers: { "Content-Type": "application/json" },
     };
     const req = https.request(opts, (res) => {
@@ -73,6 +74,7 @@ function tgGet(method, params) {
       hostname: "api.telegram.org",
       path: `/bot${TG_TOKEN}/${method}${qs}`,
       method: "GET",
+      family: 4,
     };
     const req = https.request(opts, (res) => {
       let d = "";
