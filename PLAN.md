@@ -44,9 +44,9 @@
 ## Phase 4：Prompt 安全掃描
 > [TDD] 使用 prompt-defense-audit 對所有 6 個 prompt 執行掃描
 
-- [ ] 建立 prompts/ 目錄，匯出所有 prompt 為 .txt
-- [ ] 掃描所有 prompt，目標 B 級（70分）以上
-- [ ] 補強不足的防禦語句
+- [x] 建立 prompts/ 目錄，匯出所有 prompt 為 .txt
+- [x] 掃描所有 prompt，目標 B 級（70分）以上
+- [x] 補強不足的防禦語句
 
 ## Phase 5：WSL2 排程設定
 - [ ] 建立 15 個 systemd timer 檔案
