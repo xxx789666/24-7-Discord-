@@ -43,10 +43,10 @@
 | 變數名 | 對應頻道 | 必要性 |
 |--------|----------|--------|
 | `WELCOME_WEBHOOK_URL` | #welcome | 必要 |
-| `GENERAL_WEBHOOK_URL` | #general | 必要 |
+| `GENERAL_WEBHOOK_URL` | #一般閒聊 | 必要 |
 | `NEWS_WEBHOOK_URL` | #匯率 | 必要 |
 | `ARTHUR_AGENT_WEBHOOK_URL` | #ask-arthur-agent | 必要 |
-| `POLICY_WEBHOOK_URL` | #政策追蹤 | 建議 |
+| `POLICY_WEBHOOK_URL` | #房市新聞 | 建議 |
 | `BOTLOGS_WEBHOOK_URL` | #bot-logs | 建議 |
 | `JAPAN_WEBHOOK_URL` | #japan | 可選 |
 | `THAI_WEBHOOK_URL` | #thailand | 可選 |

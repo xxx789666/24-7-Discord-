@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// vibes.js — Lobster casually chimes into #general conversations
+// vibes.js — Lobster casually chimes into #一般閒聊 conversations
 //
 // Monitors recent messages. If there's an interesting conversation,
 // lobster adds a comment. If someone replies to the lobster, it responds.
@@ -24,7 +24,7 @@ async function main() {
   const state = loadJson(STATE_FILE) || { lastResponseAt: 0 };
   const now = Date.now();
 
-  // Fetch last 20 messages from #general
+  // Fetch last 20 messages from #一般閒聊
   const msgs = await discordApi("GET", `/channels/${config.GENERAL_CHANNEL}/messages?limit=20`);
   if (!msgs || !Array.isArray(msgs)) {
     log("ERROR: Could not fetch messages");
@@ -116,7 +116,7 @@ async function main() {
     const lobsterSaid = lobsterMsg ? (lobsterMsg.content || "").trim() : "";
 
     // ── Arthur 海外置產顧問人格（回覆模式）──
-    prompt = `你是 Arthur，一位專注海外房地產的顧問，正在 Discord 社群的 #general 頻道閒聊。有人回覆了你的訊息。
+    prompt = `你是 Arthur，一位專注海外房地產的顧問，正在 Discord 社群的 #一般閒聊 頻道閒聊。有人回覆了你的訊息。
 
 你說的：${lobsterSaid}
 
@@ -141,7 +141,7 @@ ${convoLines}${memorySection}${researchSection}
 只輸出回覆內容。`;
   } else {
     // ── Arthur 海外置產顧問人格（主動插話模式）──
-    prompt = `你是 Arthur，一位專注海外房地產的顧問，正在觀察 Discord 社群的 #general 頻道。
+    prompt = `你是 Arthur，一位專注海外房地產的顧問，正在觀察 Discord 社群的 #一般閒聊 頻道。
 
 近期對話：
 ${convoLines}${memorySection}${researchSection}
@@ -181,7 +181,7 @@ ${convoLines}${memorySection}${researchSection}
     if (response.startsWith("SKIP")) response = "\u{1F99E}";
 
     const status = await postWebhook(config.GENERAL_WEBHOOK_URL, response);
-    log(`Chimed in #general (HTTP ${status}): ${response.slice(0, 80)}`);
+    log(`Chimed in #一般閒聊 (HTTP ${status}): ${response.slice(0, 80)}`);
     state.lastResponseAt = now;
     saveJson(STATE_FILE, state);
   } catch (e) {

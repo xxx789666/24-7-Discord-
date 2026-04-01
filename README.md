@@ -210,7 +210,7 @@ flowchart LR
     D --> E1[Gemini 生成\n匯率貼文]
     D --> E2[Gemini 篩選\n政策新聞 2則/市場]
     E1 --> F1[發送至 #匯率]
-    E2 --> F2[發送至 #政策追蹤]
+    E2 --> F2[發送至 #房市新聞]
 ```
 
 ---
@@ -481,7 +481,7 @@ Discord 伺服器
 │
 ├── 📊 市場情報
 │   ├── #匯率             ← news.js 每日匯率
-│   ├── #政策追蹤          ← news.js 政策新聞
+│   ├── #房市新聞          ← news.js 政策新聞
 │   ├── #japan            ← publisher.js 日本市場
 │   ├── #thailand         ← publisher.js 泰國市場
 │   ├── #dubai            ← publisher.js 杜拜市場
@@ -555,7 +555,7 @@ rm ~/arthur-bot/discord-lobster-master/data/pause.lock
 |------|----------|------|
 | 🏠 海外置產社群自動化 | 全套系統 | 本案主要用途 |
 | 🌍 多市場（日本/泰國/杜拜）內容分發 | publisher.js | 自動分頻道發布 |
-| 📈 每日匯率與政策追蹤 | news.js | 三幣種匯率 + 政策篩選 |
+| 📈 每日匯率與房市新聞 | news.js | 三幣種匯率 + 政策篩選 |
 | 🤖 24/7 AI 客服問答 | arthur-agent.js | 房地產知識問答 |
 | 👋 個人化新成員歡迎 | welcome.js | 依成員背景客製化 |
 | 📚 自動研究報告生成 | research-chain.js | RSS → AI 摘要 |

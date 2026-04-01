@@ -124,7 +124,7 @@ async function main() {
     ),
   ]);
 
-  // 3. Build prompts — rates → #匯率, news → #政策追蹤
+  // 3. Build prompts — rates → #匯率, news → #房市新聞
 
   const ratePrompt =
     `你是 Arthur 海外置產社群的匯率播報助理，用繁體中文撰寫。\n` +
@@ -159,7 +159,7 @@ async function main() {
   ].join("\n\n");
 
   const policyPrompt =
-    `你是 Arthur 海外置產社群的政策新聞編輯，用繁體中文撰寫。\n` +
+    `你是 Arthur 海外置產社群的房市新聞編輯，用繁體中文撰寫。\n` +
     `以下是各市場的新聞清單，請依規則篩選並整理成 Discord 貼文：\n\n` +
     `${newsBlock}\n\n` +
     `篩選規則（重要）：\n` +
@@ -168,7 +168,7 @@ async function main() {
     `- 杜拜/阿聯酋：從清單中找 UAE、Dubai、Emirates、Abu Dhabi、Gulf 相關內容\n` +
     `- 略過負面新聞（詐騙、崩盤、訴訟、虧損等），只推送中性或正面的政策資訊\n\n` +
     `輸出格式：\n` +
-    `- 開頭固定為「📋 海外置產政策追蹤 · ${today}」\n` +
+    `- 開頭固定為「📋 海外置產房市新聞 · ${today}」\n` +
     `- 各市場加旗幟 emoji 標題，下面 2 條條列\n` +
     `- 每條：一句話說明政策對買房者的影響，換行貼純文字 URL（例：https://example.com/article）\n` +
     `- 嚴禁 Markdown 連結格式（禁止 [文字](url)），URL 必須是完整純文字\n` +
@@ -202,7 +202,7 @@ async function main() {
     log(`ERROR posting rates webhook: ${e.message}`);
   }
 
-  // 5. Generate & post policy news → #政策追蹤
+  // 5. Generate & post policy news → #房市新聞
   if (config.POLICY_WEBHOOK_URL) {
     log("Calling Gemini for policy post (RPD +1)…");
     let policyPost;
@@ -216,7 +216,7 @@ async function main() {
     }
 
     if (policyPost) {
-      log("Posting policy to POLICY_WEBHOOK_URL (#政策追蹤)…");
+      log("Posting policy to POLICY_WEBHOOK_URL (#房市新聞)…");
       try {
         const status = await postWebhook(config.POLICY_WEBHOOK_URL, policyPost, { suppressEmbeds: true });
         log(`Policy webhook status=${status}`);
