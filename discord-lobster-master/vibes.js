@@ -58,9 +58,9 @@ async function main() {
       process.exit(0);
     }
 
-    const sixtyMinAgo = now - 60 * 60 * 1000;
+    const sixtyMinAgo = now - 30 * 60 * 1000;
     if (lobsterMsgTime > sixtyMinAgo) {
-      log("Lobster spoke in last 60 min, skipping");
+      log("Lobster spoke in last 30 min, skipping");
       process.exit(0);
     }
   }

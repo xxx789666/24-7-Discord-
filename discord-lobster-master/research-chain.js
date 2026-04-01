@@ -13,7 +13,7 @@ const https = require("https");
 const os = require("os");
 const config = require("./lib/config");
 const {
-  log: _log, geminiGenerate,
+  log: _log, geminiGenerate, postWebhook,
   loadJson, saveJson,
 } = require("./lib/utils");
 
@@ -26,19 +26,18 @@ const MAX_NEW_URLS = 5;
 const RSS_SOURCES = [
   {
     market: "日本不動產",
-    // PropertyWire — 全球海外房產新聞，description 含摘要
-    url: "https://www.propertywire.com/feed/",
+    // realestate.co.jp — 日本房產專用，已在 news.js 驗證有效
+    url: "https://resources.realestate.co.jp/feed/",
   },
   {
     market: "泰國房地產",
-    // Bangkok Post Business — 直接文章 URL，description 含摘要 ✅ 已驗證
+    // Bangkok Post Business — 直接文章 URL，description 含摘要 ✅
     url: "https://www.bangkokpost.com/rss/data/business.xml",
   },
   {
     market: "杜拜房地產",
-    // Bangkok Post Business 兼作杜拜/海灣地區資訊備援（含中東相關新聞）
-    // PropertyWire 同時涵蓋 UAE 市場
-    url: "https://www.bangkokpost.com/rss/data/topstories.xml",
+    // Google News RSS — 杜拜/UAE 房產關鍵字搜尋，真實杜拜房產新聞 ✅
+    url: "https://news.google.com/rss/search?q=Dubai+real+estate&hl=en-AE&gl=AE&ceid=AE:en",
   },
 ];
 
@@ -220,6 +219,30 @@ async function main() {
   // 4. Append to RESEARCH-NOTES.md
   if (entries.length > 0) {
     appendToNotes(entries);
+  }
+
+  // 4b. Post summary to Discord
+  const webhookUrl = config.RESEARCH_WEBHOOK_URL || config.GENERAL_WEBHOOK_URL;
+  if (entries.length > 0 && webhookUrl) {
+    const today = new Date().toISOString().slice(0, 10);
+    const relevant = entries.filter((e) => !e.insights.includes("無直接關聯") && !e.insights.includes("分析失敗"));
+    if (relevant.length > 0) {
+      const lines = [`📚 **海外置產研究報告 · ${today}**\n`];
+      for (const { title, link, market, insights } of relevant) {
+        lines.push(`**【${market}】${title}**`);
+        lines.push(insights.trim());
+        lines.push(`來源：${link}\n`);
+      }
+      const content = lines.join("\n").slice(0, 1900);
+      try {
+        const status = await postWebhook(webhookUrl, content);
+        log(`Discord post status=${status}`);
+      } catch (e) {
+        log(`WARN: Discord post failed — ${e.message}`);
+      }
+    } else {
+      log("No relevant entries to post to Discord");
+    }
   }
 
   // 5. Save state (cap seenUrls to last 500)

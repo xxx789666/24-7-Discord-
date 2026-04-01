@@ -119,7 +119,7 @@ async function main() {
       "Thailand", 6,
     ),
     fetchNewsItems(
-      "https://www.propertywire.com/feed/",            // 全球含 UAE/杜拜房產
+      "https://news.google.com/rss/search?q=Dubai+UAE+real+estate+policy&hl=en-AE&gl=AE&ceid=AE:en",  // 杜拜/UAE 房產政策 ✅
       "Dubai", 10,
     ),
   ]);
