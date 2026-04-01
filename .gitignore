@@ -20,6 +20,8 @@ Thumbs.db
 
 # Sensitive plaintext files
 *.txt
+任務.txt
+新專案的啟動流程.md
 logs/
 pids/
 discord-lobster-master/&1
