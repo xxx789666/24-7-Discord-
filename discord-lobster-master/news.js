@@ -115,11 +115,11 @@ async function main() {
       "Japan", 6,
     ),
     fetchNewsItems(
-      "https://www.bangkokpost.com/rss/data/business.xml",  // 泰國 ✅
+      "https://www.bangkokpost.com/rss/data/property.xml",  // 泰國房地產專版 ✅ 直連 URL
       "Thailand", 6,
     ),
     fetchNewsItems(
-      "https://news.google.com/rss/search?q=Dubai+UAE+real+estate+policy&hl=en-AE&gl=AE&ceid=AE:en",  // 杜拜/UAE 房產政策 ✅
+      "https://www.propertywire.com/feed/?s=dubai",  // PropertyWire Dubai 篩選 ✅ 直連 URL
       "Dubai", 10,
     ),
   ]);

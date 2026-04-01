@@ -31,13 +31,13 @@ const RSS_SOURCES = [
   },
   {
     market: "泰國房地產",
-    // Bangkok Post Business — 直接文章 URL，description 含摘要 ✅
-    url: "https://www.bangkokpost.com/rss/data/business.xml",
+    // Bangkok Post Property — 泰國房地產專版，直連 URL ✅
+    url: "https://www.bangkokpost.com/rss/data/property.xml",
   },
   {
     market: "杜拜房地產",
-    // Google News RSS — 杜拜/UAE 房產關鍵字搜尋，真實杜拜房產新聞 ✅
-    url: "https://news.google.com/rss/search?q=Dubai+real+estate&hl=en-AE&gl=AE&ceid=AE:en",
+    // PropertyWire Dubai 篩選 — 直連 URL，真實 Dubai/UAE 房產內容 ✅
+    url: "https://www.propertywire.com/feed/?s=dubai",
   },
 ];
 
