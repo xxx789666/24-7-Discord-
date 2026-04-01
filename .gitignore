@@ -18,7 +18,7 @@ drafts/
 .DS_Store
 Thumbs.db
 
-# Sensitive plaintext files
+# Sensitive / internal files
 *.txt
 任務.txt
 新專案的啟動流程.md
@@ -27,6 +27,8 @@ pids/
 discord-lobster-master/&1
 .claude/hooks/notification_hook_debug.log
 .claude/hooks/default-notification-hook-reminder.mp3
+.claude/settings.local.json
+.dispatch/tasks/
 
 # MCP secrets (keep .mcp.json but ignore if it has real keys)
 # Uncomment if you store real keys in .mcp.json:
