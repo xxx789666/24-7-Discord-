@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // self-heal.js — 三層自癒哨兵
 //
-// Layer 1: 偵測 6 種問題並嘗試自動修復
+// Layer 1: 偵測 7 種問題並嘗試自動修復
 // Layer 2: 修復失敗 → Gemini 診斷
 // Layer 3: Telegram Bot API 推播告警給 TELEGRAM_ADMIN_CHAT_ID
 //
@@ -108,6 +108,46 @@ function getStaleScripts() {
   return stale;
 }
 
+// ── Duplicate process detection & auto-kill ──────────────────────────────────
+const { execSync } = require("child_process");
+
+const PERSISTENT_SCRIPTS = ["publisher.js", "arthur-agent.js", "tg-commander.js"];
+
+const PID_DIR = path.join(__dirname, "..", "pids");
+
+function getDuplicateProcesses() {
+  const duplicates = [];
+  for (const script of PERSISTENT_SCRIPTS) {
+    try {
+      const out = execSync(
+        `ps -eo pid,args --no-headers | grep "${script}" | grep -v grep | grep -v self-heal`,
+        { encoding: "utf8", stdio: ["pipe", "pipe", "pipe"] }
+      ).trim();
+      if (!out) continue;
+      const procs = out.split("\n").filter(Boolean);
+      if (procs.length <= 1) continue;
+
+      const parsed = procs.map((line) => {
+        return parseInt(line.trim().split(/\s+/)[0], 10);
+      }).filter((p) => !isNaN(p));
+
+      // Prefer to keep the PID tracked by start-persistent.sh (PID file)
+      const pidFile = path.join(PID_DIR, script.replace(".js", ".pid"));
+      let keepPid = null;
+      try {
+        const tracked = parseInt(fs.readFileSync(pidFile, "utf8").trim(), 10);
+        if (parsed.includes(tracked)) keepPid = tracked;
+      } catch {}
+      // Fall back: keep the newest (highest) PID
+      if (!keepPid) keepPid = Math.max(...parsed);
+
+      const toKill = parsed.filter((p) => p !== keepPid);
+      duplicates.push({ script, pids: parsed, toKill, keepPid });
+    } catch { /* ps/grep returned nothing — no duplicates */ }
+  }
+  return duplicates;
+}
+
 // ── State JSON corruption check ──────────────────────────────────────────────
 function getCorruptedStateFiles() {
   const corrupted = [];
@@ -194,6 +234,20 @@ async function main() {
     errors.push(
       `腳本 ${s.script} 已 ${s.ageMins} 分鐘未執行（上限 ${s.limitMins} 分鐘）`
     );
+  }
+
+  // 7. Duplicate persistent processes — auto-kill older instances
+  const duplicates = getDuplicateProcesses();
+  for (const { script, pids, toKill, keepPid } of duplicates) {
+    for (const pid of toKill) {
+      try {
+        process.kill(pid, "SIGTERM");
+        log(`Auto-fix: 終止重複進程 ${script} PID ${pid}（保留 PID ${keepPid}）`);
+      } catch (e) {
+        errors.push(`${script} 重複進程 PID ${pid} 無法終止: ${e.message}`);
+      }
+    }
+    errors.push(`偵測到 ${script} 重複執行（${pids.length} 個進程），已自動清除`);
   }
 
   // ── Save metrics (rolling 144 samples = 24h at 10-min interval) ─────────

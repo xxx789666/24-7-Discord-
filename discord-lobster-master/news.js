@@ -112,15 +112,15 @@ async function main() {
   const [japanNews, thaiNews, dubaiNews] = await Promise.all([
     fetchNewsItems(
       "https://resources.realestate.co.jp/feed/",      // 日本房產專用 ✅
-      "Japan", 8,
+      "Japan", 6,
     ),
     fetchNewsItems(
       "https://www.bangkokpost.com/rss/data/business.xml",  // 泰國 ✅
-      "Thailand", 8,
+      "Thailand", 6,
     ),
     fetchNewsItems(
       "https://www.propertywire.com/feed/",            // 全球含 UAE/杜拜房產
-      "Dubai", 15,
+      "Dubai", 10,
     ),
   ]);
 
@@ -164,12 +164,12 @@ async function main() {
     `${newsBlock}\n\n` +
     `篩選規則（重要）：\n` +
     `- 只選與「政府政策、法規、簽證、稅制、外資購房規定、開發計畫」相關的新聞\n` +
-    `- 每個市場（日本、泰國、杜拜/阿聯酋）各選 3 則，若不足則填「（本週暫無政策更新）」\n` +
+    `- 每個市場（日本、泰國、杜拜/阿聯酋）各選 2 則，若不足則填「（本週暫無政策更新）」\n` +
     `- 杜拜/阿聯酋：從清單中找 UAE、Dubai、Emirates、Abu Dhabi、Gulf 相關內容\n` +
     `- 略過負面新聞（詐騙、崩盤、訴訟、虧損等），只推送中性或正面的政策資訊\n\n` +
     `輸出格式：\n` +
     `- 開頭固定為「📋 海外置產政策追蹤 · ${today}」\n` +
-    `- 各市場加旗幟 emoji 標題，下面 3 條條列\n` +
+    `- 各市場加旗幟 emoji 標題，下面 2 條條列\n` +
     `- 每條：一句話說明政策對買房者的影響，換行貼純文字 URL（例：https://example.com/article）\n` +
     `- 嚴禁 Markdown 連結格式（禁止 [文字](url)），URL 必須是完整純文字\n` +
     `- 結尾一句激勵行動的話\n` +

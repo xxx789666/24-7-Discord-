@@ -18,6 +18,14 @@ drafts/
 .DS_Store
 Thumbs.db
 
+# Sensitive plaintext files
+*.txt
+logs/
+pids/
+discord-lobster-master/&1
+.claude/hooks/notification_hook_debug.log
+.claude/hooks/default-notification-hook-reminder.mp3
+
 # MCP secrets (keep .mcp.json but ignore if it has real keys)
 # Uncomment if you store real keys in .mcp.json:
 # .mcp.json
