@@ -41,6 +41,7 @@ async function fetchExchangeRates() {
   const data = JSON.parse(body);
   if (data.result !== "success") throw new Error(`Exchange rate API: ${data["error-type"] || "unknown error"}`);
   const r = data.rates;
+  log(`匯率 API 資料時間: ${data.time_last_update_utc}`);
   // Base is TWD → r.JPY = JPY per 1 TWD → 1 JPY = 1/r.JPY TWD
   return {
     JPY: (100 / r.JPY).toFixed(2),   // 100 JPY in TWD
