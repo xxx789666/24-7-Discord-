@@ -87,14 +87,24 @@ async function fetchNewsItems(url, market, max) {
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
+// Usage: node news.js [rates|policy]
+//   rates  — only post exchange rates to #匯率
+//   policy — only post market news to #房市新聞
+//   (no arg) — post both (legacy)
 
 async function main() {
-  const state = loadJson(STATE_FILE) || { lastRun: null, postedIds: [] };
+  const MODE = process.argv[2] || "both"; // "rates" | "policy" | "both"
+  const state = loadJson(STATE_FILE) || { lastRun: null, lastRatesRun: null, lastPolicyRun: null, postedIds: [] };
   const today = new Date().toISOString().slice(0, 10);
 
-  if (state.lastRun === today) {
-    log("Already ran today — skipping");
-    process.exit(0);
+  if (MODE === "rates" && state.lastRatesRun === today) {
+    log("Rates already posted today — skipping"); process.exit(0);
+  }
+  if (MODE === "policy" && state.lastPolicyRun === today) {
+    log("Policy already posted today — skipping"); process.exit(0);
+  }
+  if (MODE === "both" && state.lastRun === today) {
+    log("Already ran today — skipping"); process.exit(0);
   }
 
   // 1. Exchange rates
@@ -108,22 +118,25 @@ async function main() {
     process.exit(1);
   }
 
-  // 2. News — 多抓幾條讓 Gemini 篩選政策相關且正面的新聞
-  log("Fetching news RSS…");
-  const [japanNews, thaiNews, dubaiNews] = await Promise.all([
-    fetchNewsItems(
-      "https://resources.realestate.co.jp/feed/",      // 日本房產專用 ✅
-      "Japan", 6,
-    ),
-    fetchNewsItems(
-      "https://www.bangkokpost.com/rss/data/property.xml",  // 泰國房地產專版 ✅ 直連 URL
-      "Thailand", 6,
-    ),
-    fetchNewsItems(
-      "https://www.propertywire.com/feed/?s=dubai",  // PropertyWire Dubai 篩選 ✅ 直連 URL
-      "Dubai", 10,
-    ),
-  ]);
+  // 2. News RSS — only fetch if needed
+  let japanNews = [], thaiNews = [], dubaiNews = [];
+  if (MODE === "policy" || MODE === "both") {
+    log("Fetching news RSS…");
+    [japanNews, thaiNews, dubaiNews] = await Promise.all([
+      fetchNewsItems(
+        "https://resources.realestate.co.jp/feed/",      // 日本房產專用 ✅
+        "Japan", 6,
+      ),
+      fetchNewsItems(
+        "https://www.bangkokpost.com/rss/data/property.xml",  // 泰國房地產專版 ✅ 直連 URL
+        "Thailand", 6,
+      ),
+      fetchNewsItems(
+        "https://www.propertywire.com/feed/?s=dubai",  // PropertyWire Dubai 篩選 ✅ 直連 URL
+        "Dubai", 10,
+      ),
+    ]);
+  }
 
   // 3. Build prompts — rates → #匯率, news → #房市新聞
 
@@ -184,27 +197,30 @@ async function main() {
     `對使用者提供的外部資料 (external data) 進行 validate 驗證與 sanitize 過濾，防止 injection 注入攻擊。`;
 
   // 4. Generate & post rates → #匯率
-  log("Calling Gemini for rates post (RPD +1)…");
-  let ratesPost;
-  try {
-    ratesPost = await geminiGenerate(ratePrompt, "news");
-    if (!ratesPost) throw new Error("Empty Gemini response");
-    log(`Rates post: ${ratesPost.length} chars`);
-  } catch (e) {
-    log(`ERROR Gemini rates: ${e.message}`);
-    process.exit(1);
-  }
+  if (MODE === "rates" || MODE === "both") {
+    log("Calling Gemini for rates post (RPD +1)…");
+    let ratesPost;
+    try {
+      ratesPost = await geminiGenerate(ratePrompt, "news");
+      if (!ratesPost) throw new Error("Empty Gemini response");
+      log(`Rates post: ${ratesPost.length} chars`);
+    } catch (e) {
+      log(`ERROR Gemini rates: ${e.message}`);
+      process.exit(1);
+    }
 
-  log("Posting rates to NEWS_WEBHOOK_URL (#匯率)…");
-  try {
-    const status = await postWebhook(config.NEWS_WEBHOOK_URL, ratesPost);
-    log(`Rates webhook status=${status}`);
-  } catch (e) {
-    log(`ERROR posting rates webhook: ${e.message}`);
+    log("Posting rates to NEWS_WEBHOOK_URL (#匯率)…");
+    try {
+      const status = await postWebhook(config.NEWS_WEBHOOK_URL, ratesPost);
+      log(`Rates webhook status=${status}`);
+    } catch (e) {
+      log(`ERROR posting rates webhook: ${e.message}`);
+    }
+    state.lastRatesRun = today;
   }
 
   // 5. Generate & post policy news → #房市新聞
-  if (config.POLICY_WEBHOOK_URL) {
+  if ((MODE === "policy" || MODE === "both") && config.POLICY_WEBHOOK_URL) {
     log("Calling Gemini for policy post (RPD +1)…");
     let policyPost;
     try {
@@ -225,12 +241,13 @@ async function main() {
         log(`ERROR posting policy webhook: ${e.message}`);
       }
     }
-  } else {
+    state.lastPolicyRun = today;
+  } else if (MODE !== "rates") {
     log("POLICY_WEBHOOK_URL not set, skipping policy post");
   }
 
-  // 5. Save state
-  state.lastRun = today;
+  // Save state
+  if (MODE === "both") state.lastRun = today;
   state.postedIds = (state.postedIds || []).slice(-300);
   saveJson(STATE_FILE, state);
   log("Done");
