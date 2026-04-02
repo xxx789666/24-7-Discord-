@@ -180,14 +180,26 @@ async function geminiGenerate(prompt, caller, keyOverride) {
     } catch { caller = "unknown"; }
   }
 
-  // If a specific key is forced, use it directly (no fallback)
+  // If a specific key is forced, use it directly (retry once on 503)
   if (keyOverride) {
-    const text = await _callGemini(prompt, keyOverride);
-    incrementRpd(caller, true);
-    return text;
+    try {
+      const text = await _callGemini(prompt, keyOverride);
+      incrementRpd(caller, true);
+      return text;
+    } catch (e) {
+      if (e.code === 503) {
+        console.log(`[utils] Gemini 503 (server overload) — waiting 10s then retrying (caller: ${caller})`);
+        await new Promise((r) => setTimeout(r, 10000));
+        const text = await _callGemini(prompt, keyOverride);
+        incrementRpd(caller, true);
+        return text;
+      }
+      throw new Error(`Gemini API error ${e.code || ""}: ${e.message}`);
+    }
   }
 
   // Strategy: try free key first → rotate free key on 429 → fallback to GCP paid key
+  // 503 (server overload) → sleep 10s and retry once with same or GCP key
   const freeKey = _getApiKey();
   try {
     const text = await _callGemini(prompt, freeKey);
@@ -203,6 +215,16 @@ async function geminiGenerate(prompt, caller, keyOverride) {
         incrementRpd(caller, true);
         return text;
       }
+    }
+    if (e.code === 503) {
+      console.log(`[utils] Gemini 503 (server overload) — waiting 10s then retrying (caller: ${caller})`);
+      await new Promise((r) => setTimeout(r, 10000));
+      const gcpKey = config.GEMINI_API_KEY_GCP;
+      const retryKey = gcpKey || freeKey;
+      const isPaid = Boolean(gcpKey);
+      const text = await _callGemini(prompt, retryKey);
+      incrementRpd(caller, isPaid);
+      return text;
     }
     throw new Error(`Gemini API error ${e.code || ""}: ${e.message}`);
   }
