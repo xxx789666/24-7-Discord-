@@ -188,7 +188,7 @@ async function main() {
 
   const messages = await discordApi("GET", `/channels/${channelId}/messages${queryParam}`);
   if (!messages || !Array.isArray(messages)) {
-    log("No messages or API error");
+    log("Discord API 暫時無回應，略過本輪");
     return;
   }
 
