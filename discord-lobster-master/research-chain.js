@@ -149,7 +149,7 @@ async function analyseArticle(title, text, market) {
     `只輸出見解條列，不需標題或說明。`;
 
   try {
-    const result = await geminiGenerate(prompt, "research-chain", config.GEMINI_API_KEY_GCP || undefined);
+    const result = await geminiGenerate(prompt, "research-chain");
     return result || "- （分析失敗）";
   } catch (e) {
     log(`WARN: Gemini failed for "${title}" — ${e.message}`);
@@ -214,6 +214,8 @@ async function main() {
     entries.push({ title: item.title, link: item.link, market: item.market, insights });
     seenSet.add(item.link);
     log(`Done: ${item.title.slice(0, 50)}`);
+    // 4 秒間隔避免連續呼叫超過 20 RPM 免費限額
+    await new Promise((r) => setTimeout(r, 4000));
   }
 
   // 4. Append to RESEARCH-NOTES.md

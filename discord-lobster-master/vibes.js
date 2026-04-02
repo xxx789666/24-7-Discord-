@@ -223,8 +223,7 @@ ${convoLines}${memorySection}${researchSection}
   }
 
   try {
-    const geminiKey = config.GEMINI_API_KEY_GCP || undefined;
-    let response = sanitize(await geminiGenerate(prompt, "vibes", geminiKey));
+    let response = sanitize(await geminiGenerate(prompt, "vibes"));
 
     if (!isReplyMode && (response === "SKIP" || response.startsWith("SKIP") || response.length < 3)) {
       log("Gemini says SKIP");

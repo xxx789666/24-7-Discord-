@@ -186,7 +186,7 @@ async function main() {
   log("Calling Gemini for rates post (RPD +1)…");
   let ratesPost;
   try {
-    ratesPost = await geminiGenerate(ratePrompt, "news", config.GEMINI_API_KEY_GCP || undefined);
+    ratesPost = await geminiGenerate(ratePrompt, "news");
     if (!ratesPost) throw new Error("Empty Gemini response");
     log(`Rates post: ${ratesPost.length} chars`);
   } catch (e) {
@@ -207,7 +207,7 @@ async function main() {
     log("Calling Gemini for policy post (RPD +1)…");
     let policyPost;
     try {
-      policyPost = await geminiGenerate(policyPrompt, "news", config.GEMINI_API_KEY_GCP || undefined);
+      policyPost = await geminiGenerate(policyPrompt, "news");
       if (!policyPost) throw new Error("Empty Gemini response");
       log(`Policy post: ${policyPost.length} chars`);
     } catch (e) {

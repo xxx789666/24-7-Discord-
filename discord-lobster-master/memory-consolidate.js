@@ -155,7 +155,7 @@ ${recentPosts}
   let insights;
   try {
     log("Calling Gemini for weekly synthesis (RPD +1)");
-    insights = await geminiGenerate(prompt, "memory-consolidate", config.GEMINI_API_KEY_GCP || undefined);
+    insights = await geminiGenerate(prompt, "memory-consolidate");
     if (!insights || insights.length < 20) throw new Error("Empty response from Gemini");
     log(`Received ${insights.length} chars of insights`);
   } catch (e) {

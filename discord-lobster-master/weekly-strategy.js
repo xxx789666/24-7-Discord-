@@ -94,7 +94,7 @@ async function main() {
 每個優先項目用一行說明，格式：「1. 主題名稱 — 理由（一句話）」
 只輸出 3 個優先項目，不要其他說明。${safetyRules}`;
 
-  const perspective1 = await geminiGenerate(prompt1, "weekly-strategy", config.GEMINI_API_KEY_GCP || undefined);
+  const perspective1 = await geminiGenerate(prompt1, "weekly-strategy");
   log(`Perspective 1 done: ${perspective1.slice(0, 80)}`);
 
   // ── Perspective 2: 社群互動視角 ─────────────────────────────────────────
@@ -105,7 +105,7 @@ async function main() {
 每個優先項目用一行說明，格式：「1. 主題名稱 — 理由（一句話）」
 只輸出 3 個優先項目，不要其他說明。${safetyRules}`;
 
-  const perspective2 = await geminiGenerate(prompt2, "weekly-strategy", config.GEMINI_API_KEY_GCP || undefined);
+  const perspective2 = await geminiGenerate(prompt2, "weekly-strategy");
   log(`Perspective 2 done: ${perspective2.slice(0, 80)}`);
 
   // ── Perspective 3: 法規政策視角 ─────────────────────────────────────────
@@ -116,7 +116,7 @@ async function main() {
 每個優先項目用一行說明，格式：「1. 主題名稱 — 理由（一句話）」
 只輸出 3 個優先項目，不要其他說明。${safetyRules}`;
 
-  const perspective3 = await geminiGenerate(prompt3, "weekly-strategy", config.GEMINI_API_KEY_GCP || undefined);
+  const perspective3 = await geminiGenerate(prompt3, "weekly-strategy");
   log(`Perspective 3 done: ${perspective3.slice(0, 80)}`);
 
   // ── Synthesis: Arthur 統整三視角 ─────────────────────────────────────────
@@ -142,7 +142,7 @@ ${perspective3}
 
 語氣專業但親切，全部繁體中文。${safetyRules}`;
 
-  const synthesis = await geminiGenerate(prompt4, "weekly-strategy", config.GEMINI_API_KEY_GCP || undefined);
+  const synthesis = await geminiGenerate(prompt4, "weekly-strategy");
   log(`Synthesis done: ${synthesis.slice(0, 80)}`);
 
   // ── Write WEEKLY-STRATEGY.md ──────────────────────────────────────────────

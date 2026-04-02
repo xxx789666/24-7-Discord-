@@ -135,16 +135,7 @@ function _rotateApiKey() {
   }
 }
 
-function geminiGenerate(prompt, caller, keyOverride) {
-  // Detect caller from stack if not provided
-  if (!caller) {
-    try {
-      const stack = new Error().stack.split("\n")[2] || "";
-      const m = stack.match(/[/\\]([^/\\]+)\.js/);
-      caller = m ? m[1] : "unknown";
-    } catch { caller = "unknown"; }
-  }
-
+function _callGemini(prompt, apiKey) {
   return new Promise((resolve, reject) => {
     const payload = JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
@@ -154,7 +145,6 @@ function geminiGenerate(prompt, caller, keyOverride) {
         thinkingConfig: { thinkingBudget: 0 },
       },
     });
-    const apiKey = keyOverride || _getApiKey();
     const req = https.request({
       hostname: "generativelanguage.googleapis.com",
       path: `/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
@@ -166,23 +156,10 @@ function geminiGenerate(prompt, caller, keyOverride) {
       res.on("end", () => {
         try {
           const parsed = JSON.parse(d);
-          // Detect API errors (rate limit, quota, safety block, etc.)
-          if (parsed.error) {
-            // Auto-rotate key on quota errors (429) before rejecting
-            if (parsed.error.code === 429) _rotateApiKey();
-            reject(new Error(`Gemini API error ${parsed.error.code}: ${parsed.error.message}`));
-            return;
-          }
+          if (parsed.error) { reject(Object.assign(new Error(parsed.error.message), { code: parsed.error.code })); return; }
           const text = parsed.candidates?.[0]?.content?.parts
-            ?.filter((p) => !p.thought)
-            .map((p) => p.text)
-            .join("") || "";
-          if (!text) {
-            // Empty candidates — treat as transient failure so callers can retry
-            reject(new Error("Gemini returned empty response"));
-            return;
-          }
-          incrementRpd(caller, !!keyOverride);
+            ?.filter((p) => !p.thought).map((p) => p.text).join("") || "";
+          if (!text) { reject(new Error("Gemini returned empty response")); return; }
           resolve(text.trim());
         } catch { reject(new Error("Gemini parse error")); }
       });
@@ -191,6 +168,44 @@ function geminiGenerate(prompt, caller, keyOverride) {
     req.write(payload);
     req.end();
   });
+}
+
+async function geminiGenerate(prompt, caller, keyOverride) {
+  // Detect caller from stack if not provided
+  if (!caller) {
+    try {
+      const stack = new Error().stack.split("\n")[2] || "";
+      const m = stack.match(/[/\\]([^/\\]+)\.js/);
+      caller = m ? m[1] : "unknown";
+    } catch { caller = "unknown"; }
+  }
+
+  // If a specific key is forced, use it directly (no fallback)
+  if (keyOverride) {
+    const text = await _callGemini(prompt, keyOverride);
+    incrementRpd(caller, true);
+    return text;
+  }
+
+  // Strategy: try free key first → rotate free key on 429 → fallback to GCP paid key
+  const freeKey = _getApiKey();
+  try {
+    const text = await _callGemini(prompt, freeKey);
+    incrementRpd(caller, false);
+    return text;
+  } catch (e) {
+    if (e.code === 429) {
+      _rotateApiKey();
+      const gcpKey = config.GEMINI_API_KEY_GCP;
+      if (gcpKey) {
+        console.log(`[utils] Free key 429 — falling back to GCP paid key (caller: ${caller})`);
+        const text = await _callGemini(prompt, gcpKey);
+        incrementRpd(caller, true);
+        return text;
+      }
+    }
+    throw new Error(`Gemini API error ${e.code || ""}: ${e.message}`);
+  }
 }
 
 function postWebhook(webhookUrl, content, opts = {}) {

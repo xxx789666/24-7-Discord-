@@ -26,7 +26,7 @@ const STALE_MULTIPLIER = 2;
 // Expected cron intervals in minutes for each script's state file
 const SCRIPT_INTERVALS = {
   "welcome-state.json": 3,
-  "vibes-state.json": 2,
+  "vibes-state.json": 20,
   "memory-state.json": 10,
   "news-state.json": 1440,        // daily 09:00
   "research-chain-state.json": 720, // twice daily
@@ -289,7 +289,7 @@ ${errors.map((e, i) => `${i + 1}. ${e}`).join("\n")}
 
 請提供最優先的修復步驟。`;
 
-      diagnosis = await geminiGenerate(prompt, "self-heal", config.GEMINI_API_KEY_GCP || undefined);
+      diagnosis = await geminiGenerate(prompt, "self-heal");
       log(`Gemini 診斷完成（${diagnosis.length} 字）`);
     } catch (e) {
       log(`Gemini 診斷失敗: ${e.message}`);
