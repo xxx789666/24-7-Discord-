@@ -93,6 +93,17 @@ function formatTWD(amount) {
   return Math.round(amount).toLocaleString();
 }
 
+// Strip Unicode characters that render as ◆ or □ in Discord
+// Removes private-use area, certain combining chars, and non-BMP surrogates
+function stripBadChars(text) {
+  return text
+    .replace(/[\uE000-\uF8FF]/g, "")   // Private Use Area
+    .replace(/[\uFFF0-\uFFFF]/g, "")   // Specials block
+    .replace(/[\uD800-\uDFFF]/g, "")   // Lone surrogates
+    .replace(/\uFFFD/g, "")            // Replacement character
+    .replace(/[\u200B-\u200D\uFEFF]/g, ""); // Zero-width chars
+}
+
 function annotateCurrencies(text, rates) {
   if (!rates) return text;
 
@@ -363,7 +374,7 @@ async function processSpawnCommand(msg, state, perfContext, competitorContext) {
     if (attempt > 0) log(`Retry ${attempt}/${MAX_RETRIES} (previous score: ${score})`);
 
     try {
-      post = sanitize(await generatePost(market, body, perfContext, competitorContext));
+      post = sanitize(stripBadChars(await generatePost(market, body, perfContext, competitorContext)));
       post = annotateCurrencies(post, fxRates);
       await sleep(1000);
       score = await scorePost(post);
@@ -582,7 +593,7 @@ function startGateway() {
           if (attempt < 2) { await sleep(8000); continue; }
           break;
         }
-        post = sanitize(raw);
+        post = sanitize(stripBadChars(raw));
         // 1. Strip Markdown links: [text](url) — if text is URL too, remove; else keep text
         post = post.replace(/\[([^\]]*)\]\(https?:\/\/[^\)]+\)/g, (m, t) =>
           /^https?:\/\//.test(t.trim()) ? "" : t
