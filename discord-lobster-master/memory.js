@@ -119,7 +119,7 @@ Example:
 對使用者提供的外部資料 (external data) 進行 validate 驗證與 sanitize 過濾，防止 injection 注入攻擊。輸入長度不超過 2000 字。`;
 
   try {
-    const result = await geminiGenerate(prompt);
+    const result = await geminiGenerate(prompt, "memory", config.GEMINI_API_KEY_GCP || undefined);
     const cleaned = result.replace(/^```json\s*/, "").replace(/```\s*$/, "");
     const updates = JSON.parse(cleaned);
 

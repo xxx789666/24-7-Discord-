@@ -149,7 +149,7 @@ async function analyseArticle(title, text, market) {
     `只輸出見解條列，不需標題或說明。`;
 
   try {
-    const result = await geminiGenerate(prompt);
+    const result = await geminiGenerate(prompt, "research-chain", config.GEMINI_API_KEY_GCP || undefined);
     return result || "- （分析失敗）";
   } catch (e) {
     log(`WARN: Gemini failed for "${title}" — ${e.message}`);

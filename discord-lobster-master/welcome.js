@@ -89,7 +89,7 @@ async function main() {
 只輸出回覆內容本身，不要加任何說明。`;
 
       try {
-        const response = sanitize(await geminiGenerate(prompt));
+        const response = sanitize(await geminiGenerate(prompt, "welcome", config.GEMINI_API_KEY_GCP || undefined));
         await postWebhook(config.WELCOME_WEBHOOK_URL, `${mention} ${response}`);
         log(`Welcomed ${user.username}`);
         state.welcomedUsers.push(user.id);
@@ -125,7 +125,7 @@ async function main() {
 只輸出回覆內容本身。`;
 
       try {
-        const response = sanitize(await geminiGenerate(prompt));
+        const response = sanitize(await geminiGenerate(prompt, "welcome", config.GEMINI_API_KEY_GCP || undefined));
         await postWebhook(config.WELCOME_WEBHOOK_URL, `${mentions} ${response}`);
         log(`Batch welcomed ${batched.length} users`);
         for (const u of batched) state.welcomedUsers.push(u.id);
@@ -179,7 +179,7 @@ async function main() {
 只輸出回覆內容本身，不要加任何說明。`;
 
       try {
-        const response = sanitize(await geminiGenerate(prompt));
+        const response = sanitize(await geminiGenerate(prompt, "welcome", config.GEMINI_API_KEY_GCP || undefined));
         await postWebhook(config.WELCOME_WEBHOOK_URL, `${mention} ${response}`);
         log(`Responded to intro from ${intro.author.username}`);
         state.respondedMsgIds.push(intro.id);
