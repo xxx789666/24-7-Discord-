@@ -713,7 +713,7 @@ function startGateway() {
       parseFrames(chunk);
     });
 
-    socket.on("error", (e) => log(`Gateway socket error: ${e.message}`));
+    socket.on("error", (e) => log(`WARN: Gateway socket error: ${e.message} — will reconnect`));
     socket.on("close", () => {
       log("Gateway disconnected, reconnecting in 5s…");
       clearInterval(heartbeatTimer);

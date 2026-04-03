@@ -529,7 +529,7 @@ async function poll() {
       }
     }
   } catch (e) {
-    log(`Poll error: ${e.message} — retrying in ${backoff}ms`);
+    log(`WARN: Poll error: ${e.message} — retrying in ${backoff}ms`);
     await sleep(backoff);
     backoff = Math.min(backoff * 2, 60000);
   }
