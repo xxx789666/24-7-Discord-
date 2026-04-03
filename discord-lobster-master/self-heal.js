@@ -177,7 +177,10 @@ async function main() {
   // ── Collect raw metrics ──────────────────────────────────────────────────
   const heapMB = Math.round(process.memoryUsage().heapUsed / 1024 / 1024);
   const dataDirKb = getDirSizeKb(config.DATA_DIR);
-  const webhookOk = await checkWebhook(config.GENERAL_WEBHOOK_URL);
+  const [webhookOk, botlogsOk] = await Promise.all([
+    checkWebhook(config.GENERAL_WEBHOOK_URL),
+    config.BOTLOGS_WEBHOOK_URL ? checkWebhook(config.BOTLOGS_WEBHOOK_URL) : Promise.resolve(true),
+  ]);
   const staleScripts = getStaleScripts();
 
   const errors = [];
@@ -203,6 +206,9 @@ async function main() {
   // 2. Webhook failure
   if (!webhookOk) {
     errors.push("GENERAL_WEBHOOK_URL 無回應 (HEAD 請求失敗)");
+  }
+  if (!botlogsOk) {
+    errors.push("BOTLOGS_WEBHOOK_URL (#bot-logs) 無回應 (HEAD 請求失敗)");
   }
 
   // 3. Memory (heap) over threshold
