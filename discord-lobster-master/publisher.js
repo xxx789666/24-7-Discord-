@@ -420,7 +420,7 @@ async function poll() {
   }
 
   if (!Array.isArray(msgs)) {
-    log("No messages or channel error");
+    log(`WARN: Discord API 回傳非陣列，略過本輪 (${JSON.stringify(msgs)?.slice(0, 120)})`);
     return;
   }
 
