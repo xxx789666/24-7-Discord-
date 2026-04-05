@@ -165,10 +165,13 @@ function getCorruptedStateFiles() {
   return corrupted;
 }
 
+const TG_ALERT_COOLDOWN_MS = 60 * 60 * 1000; // 同樣錯誤 1 小時內只發一次 Telegram
+
 // ── Main ─────────────────────────────────────────────────────────────────────
 async function main() {
   const state = loadJson(STATE_FILE) || { metrics: [] };
   if (!Array.isArray(state.metrics)) state.metrics = [];
+  if (!state.lastAlertAt) state.lastAlertAt = {}; // { errorKey: timestamp }
 
   const TG_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
   const TG_CHAT = process.env.TELEGRAM_ADMIN_CHAT_ID || "";
@@ -305,9 +308,16 @@ ${errors.map((e, i) => `${i + 1}. ${e}`).join("\n")}
     log("Gemini cooldown lock 存在，跳過 Layer 2 診斷");
   }
 
-  // ── Layer 3: Telegram 告警 ───────────────────────────────────────────────
+  // ── Layer 3: Telegram 告警（含冷卻：同樣錯誤組合 1 小時只發一次）────────────
   if (!TG_TOKEN || !TG_CHAT) {
     log("TELEGRAM_BOT_TOKEN 或 TELEGRAM_ADMIN_CHAT_ID 未設定，跳過 Telegram 告警");
+    process.exit(1);
+  }
+
+  const alertKey = errors.map((e) => e.slice(0, 40)).sort().join("|");
+  const lastSent = state.lastAlertAt[alertKey] || 0;
+  if (Date.now() - lastSent < TG_ALERT_COOLDOWN_MS) {
+    log(`Telegram 冷卻中（距上次 ${Math.round((Date.now() - lastSent) / 60000)} 分鐘），跳過本次告警`);
     process.exit(1);
   }
 
@@ -327,6 +337,13 @@ ${errors.map((e, i) => `${i + 1}. ${e}`).join("\n")}
   const tgStatus = await sendTelegram(TG_TOKEN, TG_CHAT, alertText);
   if (tgStatus === 200 || tgStatus === 204) {
     log("Telegram 告警已發送");
+    state.lastAlertAt[alertKey] = Date.now();
+    // 清理超過 24h 的舊紀錄
+    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+    for (const k of Object.keys(state.lastAlertAt)) {
+      if (state.lastAlertAt[k] < cutoff) delete state.lastAlertAt[k];
+    }
+    saveJson(STATE_FILE, state);
   } else {
     log(`Telegram 告警發送失敗，HTTP ${tgStatus}`);
   }
