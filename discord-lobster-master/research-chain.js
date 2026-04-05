@@ -192,6 +192,8 @@ async function main() {
 
   if (newItems.length === 0) {
     log("No new URLs — skipping");
+    state.seenUrls = [...seenSet].slice(-500);
+    saveJson(STATE_FILE, state); // touch mtime so self-heal knows we ran
     process.exit(0);
   }
 
