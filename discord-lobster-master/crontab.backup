@@ -1,0 +1,61 @@
+# Arthur Bot 排程 — 自動產生於 2026-03-31 09:02
+# 環境變數
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/training/.nvm/versions/node/v20.20.2/bin
+
+# ─────────────────────────────────────────────
+# 高頻週期腳本（錯開分鐘避免同時打 Gemini API）
+# ─────────────────────────────────────────────
+
+# welcome.js — 每 3 分鐘偵測新成員並歡迎（0,3,6,9...）
+*/3 * * * * cd /home/training/arthur-bot/discord-lobster-master && /home/training/.nvm/versions/node/v20.20.2/bin/node welcome.js >> /home/training/arthur-bot/logs/welcome.log 2>&1
+
+# memory.js — 每 10 分鐘更新成員記憶（0,10,20,30...）
+*/10 * * * * cd /home/training/arthur-bot/discord-lobster-master && /home/training/.nvm/versions/node/v20.20.2/bin/node memory.js >> /home/training/arthur-bot/logs/memory.log 2>&1
+
+# self-heal.js — 每 10 分鐘健康自檢（錯開 3 分鐘：3,13,23,33...）
+3,13,23,33,43,53 * * * * cd /home/training/arthur-bot/discord-lobster-master && /home/training/.nvm/versions/node/v20.20.2/bin/node self-heal.js >> /home/training/arthur-bot/logs/self-heal.log 2>&1
+
+# vibes.js — 每 20 分鐘插話活躍頻道（6,26,46）
+6,26,46 * * * * cd /home/training/arthur-bot/discord-lobster-master && /home/training/.nvm/versions/node/v20.20.2/bin/node vibes.js >> /home/training/arthur-bot/logs/vibes.log 2>&1
+
+# ─────────────────────────────────────────────
+# 每日定時腳本
+# ─────────────────────────────────────────────
+
+# research-chain.js Round 1 — 每天 05:00
+0 5 * * * cd /home/training/arthur-bot/discord-lobster-master && /home/training/.nvm/versions/node/v20.20.2/bin/node research-chain.js >> /home/training/arthur-bot/logs/research-chain.log 2>&1
+
+
+# research-chain.js Round 2 — 每天 17:00
+0 17 * * * cd /home/training/arthur-bot/discord-lobster-master && /home/training/.nvm/versions/node/v20.20.2/bin/node research-chain.js >> /home/training/arthur-bot/logs/research-chain.log 2>&1
+
+# ─────────────────────────────────────────────
+# 每週腳本（週日）
+# ─────────────────────────────────────────────
+
+# weekly-strategy.js — 每週日 12:00
+0 12 * * 0 cd /home/training/arthur-bot/discord-lobster-master && /home/training/.nvm/versions/node/v20.20.2/bin/node weekly-strategy.js >> /home/training/arthur-bot/logs/weekly-strategy.log 2>&1
+
+# memory-consolidate.js — 每週日 23:00
+0 23 * * 0 cd /home/training/arthur-bot/discord-lobster-master && /home/training/.nvm/versions/node/v20.20.2/bin/node memory-consolidate.js >> /home/training/arthur-bot/logs/memory-consolidate.log 2>&1
+
+# ─────────────────────────────────────────────
+# Log 輪替（每天 00:05 清空超過 7 天的舊 log）
+# ─────────────────────────────────────────────
+5 0 * * * find /home/training/arthur-bot/logs -name '*.log' -mtime +7 -exec truncate -s 0 {} \;
+
+
+
+# ─────────────────────────────────────────────
+# WSL2 重啟後自動啟動常駐服務
+# ─────────────────────────────────────────────
+@reboot sleep 10 && setsid /home/training/.nvm/versions/node/v20.20.2/bin/node /home/training/arthur-bot/discord-lobster-master/publisher.js >> /home/training/arthur-bot/logs/publisher.log 2>&1 &
+@reboot sleep 10 && setsid /home/training/.nvm/versions/node/v20.20.2/bin/node /home/training/arthur-bot/discord-lobster-master/tg-commander.js >> /home/training/arthur-bot/logs/tg-commander.log 2>&1 &
+@reboot sleep 14 && setsid /home/training/.nvm/versions/node/v20.20.2/bin/node /home/training/arthur-bot/discord-lobster-master/arthur-agent.js >> /home/training/arthur-bot/logs/arthur-agent.log 2>&1 &
+
+# news.js rates — 每天 10:00 發布匯率至 #匯率
+0 10 * * * cd /home/training/arthur-bot/discord-lobster-master && /home/training/.nvm/versions/node/v20.20.2/bin/node news.js rates >> /home/training/arthur-bot/logs/news.log 2>&1
+
+# news.js policy — 每天 10:30 發布房市新聞至 #房市新聞
+30 10 * * * cd /home/training/arthur-bot/discord-lobster-master && /home/training/.nvm/versions/node/v20.20.2/bin/node news.js policy >> /home/training/arthur-bot/logs/news.log 2>&1
